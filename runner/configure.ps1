@@ -25,6 +25,10 @@ if ($env:GROUP) {
 Remove-Item Env:\TOKEN
 Remove-Item Env:\REPO
 Remove-Item Env:\LTSC_YEAR
+if (Get-Item _work) {
+  Write-Host "Already configured."
+  return
+}
 . .\config.cmd --unattended --url https://github.com/$REPO --token $TOKEN --runnergroup $GROUP --labels windows-$LTSC_YEAR
 if ($LASTEXITCODE -ne 0) {
   Write-Error "Failed to configure GitHub Actions runner."
