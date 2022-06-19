@@ -23,5 +23,16 @@ COPY --from=runner C:\actions-runner.zip C:\actions-runner\
 RUN Add-Type -AssemblyName System.IO.Compression.FileSystem; `
     [System.IO.Compression.ZipFile]::ExtractToDirectory('actions-runner.zip', '.'); `
     Remove-Item actions-runner.zip
+# docker, index at: https://dockermsft.blob.core.windows.net/dockercontainer/DockerMsftIndex.json
+RUN mkdir $env:temp\docker\extracted\ | out-null; `
+    mkdir $env:ProgramFiles\Docker\ | out-null; `
+    Invoke-WebRequest https://dockermsft.azureedge.net/dockercontainer/docker-20-10-9.zip -OutFile $env:temp\docker\docker.zip; `
+    Add-Type -AssemblyName System.IO.Compression.FileSystem ; `
+    [System.IO.Compression.ZipFile]::ExtractToDirectory(\"$env:temp\docker\docker.zip\", \"$env:temp\docker\extracted\"); `
+    get-childitem -Recurse \"$env:temp\docker\extracted\docker\" | Move-Item -Destination \"$env:ProgramFiles\Docker\"; `
+    Remove-Item $env:temp\docker\ -Recurse -Force; `
+    [Environment]::SetEnvironmentVariable('PATH', \"$env:ProgramFiles\Docker\;$env:PATH\", [EnvironmentVariableTarget]::Machine); `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    Invoke-WebRequest https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Windows-x86_64.exe -UseBasicParsing -OutFile $Env:ProgramFiles\Docker\docker-compose.exe
 COPY *.ps1 c:\actions-runner\
 CMD ["powershell", "-f", "configureAndRun.ps1"]
