@@ -44,7 +44,6 @@ jobs:
     runs-on: windows-${{ matrix.year }}
     if: ${{ !(github.event_name == 'push' && (github.ref == 'refs/heads/latest' || startsWith(github.ref, 'refs/tags/'))) }}
     outputs:
-      meta_tags: ${{ steps.meta.outputs.tags }}
       push_2019: ${{ steps.push_image.outputs[format('push_{0}', matrix.year)] }}
       push_2022: ${{ steps.push_image.outputs[format('push_{0}', matrix.year)] }}
     steps:
@@ -120,8 +119,18 @@ jobs:
     name: Push Docker manifest to Docker Hub
     runs-on: windows-latest
     needs: push_to_registry
-    if: ${{ success() && ((needs.push_to_registry.outputs.push_2019 == 'true' || needs.push_to_registry.outputs.push_2022 == 'true') || (github.event_name == 'push' && (github.ref == 'refs/heads/latest' || github.ref_type == 'tag'))) }}
+    if: ${{ always() && (needs.push_to_registry.result == 'success' || needs.push_to_registry.result == 'skipped') && ((needs.push_to_registry.outputs.push_2019 == 'true' || needs.push_to_registry.outputs.push_2022 == 'true') || (github.event_name == 'push' && (github.ref == 'refs/heads/latest' || github.ref_type == 'tag'))) }}
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        if: ${{ github.event_name != 'schedule' }}
+
+      - name: Check out the latest branch
+        uses: actions/checkout@v2
+        with:
+          ref: latest
+        if: ${{ github.event_name == 'schedule' }}
+
       - name: Docker login
         id: docker_login
         run: |
@@ -130,13 +139,24 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Docker login failed." }
         env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REPO }}
+          flavor: |
+            latest=false
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
       - name: Push manifest
         run: |
           $env:DOCKER_CLI_EXPERIMENTAL='enabled'
-          docker manifest create $env:REPO:${github.ref_name} --amend $env:REPO:${github.sha}-windowsservercore-ltsc2019 --amend $env:REPO:${github.sha}-windowsservercore-ltsc2022
-          docker manifest push $env:REPO:${github.ref_name}
-          docker manifest create $env:REPO:${github.sha} --amend $env:REPO:${github.sha}-windowsservercore-ltsc2019 --amend $env:REPO:${github.sha}-windowsservercore-ltsc2022
-          docker manifest push $env:REPO:${github.sha}
+          $sha = $(git rev-parse --short HEAD)
+          docker manifest create ${{ steps.meta.outputs.tags }} --amend ${env:REPO}:$sha-windowsservercore-ltsc2019 --amend ${env:REPO}:$sha-windowsservercore-ltsc2022
+          docker manifest push ${{ steps.meta.outputs.tags }}
+          docker manifest create ${env:REPO}:$sha --amend ${env:REPO}:$sha-windowsservercore-ltsc2019 --amend ${env:REPO}:$sha-windowsservercore-ltsc2022
+          docker manifest push ${env:REPO}:$sha
       - name: Docker logout
         run: docker logout
         if: ${{ always() && steps.docker_login.outcome != 'skipped' }}
