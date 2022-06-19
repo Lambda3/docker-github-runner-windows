@@ -85,7 +85,7 @@ jobs:
         working-directory: ./runner/
         run: |
           $ErrorActionPreference = "Stop"
-          Invoke-Expression "docker build --isolation process --build-arg FROM=mcr.microsoft.com/windows/servercore:ltsc${{ matrix.year }} --pull $($env:TAGS.Split("`n") | % { '-t "' + $_ + '-windowsservercore-ltsc${{ matrix.year }}"' }) $($env:LABELS.Split("`n") | % { '--label "' + $_ + '"' }) ."
+          Invoke-Expression "docker build --isolation process --build-arg LTSC_YEAR=${{ matrix.year }} --pull $($env:TAGS.Split("`n") | % { '-t "' + $_ + '-windowsservercore-ltsc${{ matrix.year }}"' }) $($env:LABELS.Split("`n") | % { '--label "' + $_ + '"' }) ."
           if ($LASTEXITCODE -ne 0) { throw "Docker build failed." }
         env:
           TAGS: ${{ steps.meta.outputs.tags }}

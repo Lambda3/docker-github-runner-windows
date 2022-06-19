@@ -1,7 +1,8 @@
 # escape=`
-ARG FROM=mcr.microsoft.com/windows/servercore:ltsc2019
-FROM ${FROM} as runner
+ARG LTSC_YEAR=2019
+FROM mcr.microsoft.com/windows/servercore:ltsc${LTSC_YEAR} as runner
 SHELL [ "powershell.exe", "-NoLogo", "-Command", "$ErrorActionPreference='Stop';", "$ProgressPreference='SilentlyContinue';" ]
+# runner, auto download latest release
 RUN Invoke-WebRequest https://nodejs.org/dist/v16.15.1/node-v16.15.1-win-x64.zip -OutFile node.zip; `
     Add-Type -AssemblyName System.IO.Compression.FileSystem; `
     [System.IO.Compression.ZipFile]::ExtractToDirectory(\"$PWD/node.zip\", \"$env:temp\node\"); `
@@ -14,11 +15,12 @@ RUN Invoke-WebRequest https://nodejs.org/dist/v16.15.1/node-v16.15.1-win-x64.zip
     if ($assetUrl.count -ne 1) { throw \"Found more than one version.\" } `
     Invoke-WebRequest $assetUrl -OutFile C:\actions-runner.zip;
 
-FROM ${FROM}
+FROM mcr.microsoft.com/windows/servercore:ltsc${LTSC_YEAR}
+ARG LTSC_YEAR
 LABEL maintainer="giggio@giggio.net"
 WORKDIR c:\actions-runner\
 SHELL [ "powershell.exe", "-NoLogo", "-Command", "$ErrorActionPreference='Stop';", "$ProgressPreference='SilentlyContinue';" ]
-# runner, auto download latest release
+RUN setx LTSC_YEAR $env:LTSC_YEAR
 COPY --from=runner C:\actions-runner.zip C:\actions-runner\
 RUN Add-Type -AssemblyName System.IO.Compression.FileSystem; `
     [System.IO.Compression.ZipFile]::ExtractToDirectory('actions-runner.zip', '.'); `
