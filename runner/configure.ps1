@@ -25,7 +25,7 @@ if ($env:GROUP) {
 Remove-Item Env:\TOKEN
 Remove-Item Env:\REPO
 Remove-Item Env:\LTSC_YEAR
-if (Get-Item _work) {
+if (Test-Path _work) {
   Write-Host "Already configured."
   return
 }
