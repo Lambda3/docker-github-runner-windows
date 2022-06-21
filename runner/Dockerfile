@@ -25,6 +25,10 @@ COPY --from=runner C:\actions-runner.zip C:\actions-runner\
 RUN Add-Type -AssemblyName System.IO.Compression.FileSystem; `
     [System.IO.Compression.ZipFile]::ExtractToDirectory('actions-runner.zip', '.'); `
     Remove-Item actions-runner.zip
+#choco
+RUN powershell.exe -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+# git
+RUN [ "choco", "install", "--no-progress", "-y", "git.install" ]
 # docker, index at: https://dockermsft.blob.core.windows.net/dockercontainer/DockerMsftIndex.json
 RUN mkdir $env:temp\docker\extracted\ | out-null; `
     mkdir $env:ProgramFiles\Docker\ | out-null; `
