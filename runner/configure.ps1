@@ -29,7 +29,7 @@ if (Test-Path _work) {
   Write-Host "Already configured."
   return
 }
-. .\config.cmd --unattended --url https://github.com/$REPO --token $TOKEN --runnergroup $GROUP --labels windows-$LTSC_YEAR
+. .\config.cmd --unattended --url https://github.com/$REPO --token $TOKEN --runnergroup $GROUP --labels windows-$LTSC_YEAR --replace
 if ($LASTEXITCODE -ne 0) {
   Write-Error "Failed to configure GitHub Actions runner."
   exit 1
