@@ -18,6 +18,15 @@ You need to set these environment variables:
 - `REPO` - The Github repo, should be `owner/repo`. Required.
 - `GROUP` - The runner group. Optional. Default value: `Default`
 
+To create the above token see the requirements at
+[the Github docs](https://docs.github.com/en/actions/hosting-your-own-runners/autoscaling-with-self-hosted-runners#authentication-requirements). At the time of this writing, public repos use the `public_repo`
+[scope](https://docs.github.com/en/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/#available-scopes),
+and private repos use the `repo` scope.
+You can create tokens for a user at <https://github.com/settings/tokens>.
+This token will be used to call the
+[api](https://docs.github.com/en/rest/actions/self-hosted-runners#create-a-registration-token-for-a-repository)
+and use it to exchage it for a runner registration token.
+
 ## Running
 
 On Windows, use Docker for Windows and run, on PowerShell:
