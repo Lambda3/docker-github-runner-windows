@@ -27,8 +27,8 @@ RUN Add-Type -AssemblyName System.IO.Compression.FileSystem; `
     Remove-Item actions-runner.zip
 #choco
 RUN powershell.exe -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
-# git
-RUN [ "choco", "install", "--no-progress", "-y", "git.install" ]
+# git, jq
+RUN [ "choco", "install", "--no-progress", "-y", "git.install", "jq" ]
 RUN setx PATH \"$env:PATH;C:\Program Files\Git\usr\bin\"
 # docker, index at: https://dockermsft.blob.core.windows.net/dockercontainer/DockerMsftIndex.json
 RUN mkdir $env:temp\docker\extracted\ | out-null; `
