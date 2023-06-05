@@ -1,3 +1,7 @@
+# This project is unmaintaned
+
+At this point the project is unmantained. If you wish to collaborate let us know.
+
 # Github Self hosted runner for Windows
 
 This repository contains `Dockerfile` definitions for
